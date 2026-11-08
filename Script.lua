@@ -71,20 +71,21 @@ task.spawn(function()
             else
                 CodeLabel:Set("Membaca Kode Pintu: Kertas belum di-spawn/diambil")
             end
-         pcall(function()
+            
             -- Auto-Collect Kunci jika berada dalam jangkauan dekat secara instan
             if _G.AutoCollectKeys and workspace:FindFirstChild("PuzzleItems") then
                 for _, key in pairs(workspace.PuzzleItems:GetChildren()) do
                     if key:FindFirstChild("PuzzleClick") then
                         local player = game.Players.LocalPlayer
-                        local dist = (player.Character.HumanoidRootPart.Position - key.Position).Magnitude
-                        if dist < 15 then
-                            fireclickdetector(key.PuzzleClick)
+                        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                            local dist = (player.Character.HumanoidRootPart.Position - key.Position).Magnitude
+                            if dist < 15 then
+                                fireclickdetector(key.PuzzleClick)
+                            end
                         end
                     end
                 end
             end
-         end)
         end)
     end
 end)
@@ -144,16 +145,21 @@ ESPTab:AddToggle({
     Default = false,
     Callback = function(Value)
         _G.OpahESP = Value
-        while _G.OpahESP do
-            task.wait(1)
-            if workspace:FindFirstChild("OpahRuntime") then
-                for _, v in pairs(workspace.OpahRuntime:GetChildren()) do
-                    if v:IsA("Model") then createESP(v, Color3.fromRGB(255, 0, 0), "⚠️ OPAH ⚠️") end
+        if Value then
+            task.spawn(function()
+                while _G.OpahESP do
+                    if workspace:FindFirstChild("OpahRuntime") then
+                        for _, v in pairs(workspace.OpahRuntime:GetChildren()) do
+                            if v:IsA("Model") then createESP(v, Color3.fromRGB(255, 0, 0), "⚠️ OPAH ⚠️") end
+                        end
+                    end
+                    task.wait(1)
                 end
+            end)
+        else
+            if workspace:FindFirstChild("OpahRuntime") then
+                for _, v in pairs(workspace.OpahRuntime:GetChildren()) do removeESP(v) end
             end
-        end
-        if not Value and workspace:FindFirstChild("OpahRuntime") then
-            for _, v in pairs(workspace.OpahRuntime:GetChildren()) do removeESP(v) end
         end
     end    
 })
@@ -163,16 +169,21 @@ ESPTab:AddToggle({
     Default = false,
     Callback = function(Value)
         _G.KeyESP = Value
-        while _G.KeyESP do
-            task.wait(1)
-            if workspace:FindFirstChild("PuzzleItems") then
-                for _, v in pairs(workspace.PuzzleItems:GetChildren()) do
-                    createESP(v, Color3.fromRGB(255, 255, 0), "🔑 Kunci")
+        if Value then
+            task.spawn(function()
+                while _G.KeyESP do
+                    if workspace:FindFirstChild("PuzzleItems") then
+                        for _, v in pairs(workspace.PuzzleItems:GetChildren()) do
+                            createESP(v, Color3.fromRGB(255, 255, 0), "🔑 Kunci")
+                        end
+                    end
+                    task.wait(1)
                 end
+            end)
+        else
+            if workspace:FindFirstChild("PuzzleItems") then
+                for _, v in pairs(workspace.PuzzleItems:GetChildren()) do removeESP(v) end
             end
-        end
-        if not Value and workspace:FindFirstChild("PuzzleItems") then
-            for _, v in pairs(workspace.PuzzleItems:GetChildren()) do removeESP(v) end
         end
     end    
 })
@@ -182,12 +193,17 @@ ESPTab:AddToggle({
     Default = false,
     Callback = function(Value)
         _G.NoteESP = Value
-        while _G.NoteESP do
-            task.wait(1)
-            local note = workspace:FindFirstChild("PasscodeNote")
-            if note then createESP(note, Color3.fromRGB(0, 255, 255), "📄 Catatan Kode") end
+        if Value then
+            task.spawn(function()
+                while _G.NoteESP do
+                    local note = workspace:FindFirstChild("PasscodeNote")
+                    if note then createESP(note, Color3.fromRGB(0, 255, 255), "📄 Catatan Kode") end
+                    task.wait(1)
+                end
+            end)
+        else
+            if workspace:FindFirstChild("PasscodeNote") then removeESP(workspace.PasscodeNote) end
         end
-        if not Value and workspace:FindFirstChild("PasscodeNote") then removeESP(workspace.PasscodeNote) end
     end    
 })
 
@@ -196,14 +212,17 @@ ESPTab:AddToggle({
     Default = false,
     Callback = function(Value)
         _G.LockESP = Value
-        while _G.LockESP do
-            task.wait(1)
-            if workspace:FindFirstChild("PuzzleLocks") then
-                for _, v in pairs(workspace.PuzzleLocks:GetChildren()) do createESP(v, Color3.fromRGB(255, 0, 255), "🔒 " .. v.Name) end
-            end
-            if workspace:FindFirstChild("Keypad") then createESP(workspace.Keypad, Color3.fromRGB(255, 128, 0), "🔢 Keypad Pintu") end
-        end
-        if not Value then
+        if Value then
+            task.spawn(function()
+                while _G.LockESP do
+                    if workspace:FindFirstChild("PuzzleLocks") then
+                        for _, v in pairs(workspace.PuzzleLocks:GetChildren()) do createESP(v, Color3.fromRGB(255, 0, 255), "🔒 " .. v.Name) end
+                    end
+                    if workspace:FindFirstChild("Keypad") then createESP(workspace.Keypad, Color3.fromRGB(255, 128, 0), "🔢 Keypad Pintu") end
+                    task.wait(1)
+                end
+            end)
+        else
             if workspace:FindFirstChild("PuzzleLocks") then for _, v in pairs(workspace.PuzzleLocks:GetChildren()) do removeESP(v) end end
             if workspace:FindFirstChild("Keypad") then removeESP(workspace.Keypad) end
         end
@@ -226,20 +245,4 @@ TPTab:AddButton({
 TPTab:AddButton({
     Name = "TP ke Kunci Terdekat (Key)",
     Callback = function()
-        if workspace:FindFirstChild("PuzzleItems") and #workspace.PuzzleItems:GetChildren() > 0 then
-            teleportTo(workspace.PuzzleItems:GetChildren()[1])
-        else
-            OrionLib:MakeNotification({Name = "Error", Content = "Tidak ada kunci di map!", Time = 3})
-        end
-    end
-})
-
-TPTab:AddButton({
-    Name = "TP ke Keypad Utama",
-    Callback = function()
-        local keypad = workspace:FindFirstChild("Keypad")
-        if keypad then teleportTo(keypad) else OrionLib:MakeNotification({Name = "Error", Content = "Keypad tidak ditemukan!", Time = 3}) end
-    end
-})
-
-OrionLib:Init()
+            
